@@ -31,51 +31,175 @@
 
 class Anime {
   constructor({mal_id, title,synopsis, episodes, status, score, type, genres, studios, image_url, popularity}) {
-    // Usamos propiedades privadas (convención con _) para obligar el acceso
+     this.mal_id=mal_id;
+     this.title=title;
+     this.synopsis=synopsis;
+     this.episodes=episodes;
+     this.status=status;
+     this.score=score;
+     this.type=type;
+     this.genres=genres;
+     this.studios=studios;
+     this.image_url=image_url;
+     this.popularity=popularity;
+     // Usamos propiedades privadas (convención con _) para obligar el acceso
     // a través de getters/setters y poder añadir validaciones centralizadas.
     // ...
   }
 
   // ── Getters ──────────────────────────────────────────────────────────────
-
+get mal_id(){
+   return this._mal_id;
+}
+get title(){
+   return this._title;
+}
+get synopsis(){
+   return this._synopsis;
+}
+get episodes(){
+   return this._episodes;
+}
+get status(){
+   return this._status;
+}
+get score(){
+   return this._score;
+}
+get type(){
+   return this._type;
+}
+get genres(){
+   return this._genres;
+}
+get studios(){
+   return this._studios;
+}
+get image_url(){
+   return this._image_url;
+}
+get popularity(){
+   return this._popularity;
+}
 
   // ── Setters con validación básica ────────────────────────────────────────
 
-
+set mal_id(value){
+   if(!Numer.isInteger(value)||value<=0){
+      throw new Error("mal_id ha de ser un nombre enter positiu");
+   }this._mal_id=value;
 }
-
+set title(value){
+   if(typeof value!=="string"||value.trim()===""){
+      throw new Error("title ha de ser un text ple");
+   }this._title=value.trim();
+}
+set synopsis(value){
+   if(typeof value!=="string"){
+      throw new Error("synopsis ha de ser un text");
+   }this._synopsis=value.trim();
+}
+set episodes(value){
+   if(!Numer.isInteger(value)||value<0){
+      throw new Error("episodes ha de ser un nombre enter, més gran o igual que 0");
+   }this._episodes=value;
+}
+set status(value){
+   const validStatuses=["Finished Airing", "Currently Airing", "Not yet aired"];
+   if(typeof value!=="string"||!validStatuses.includes(value)){
+      throw new Error("status no és vàlid");
+   }this._status=value;
+}
+set score(value){
+   if(typeof value!=="number"||value<0||value<0){
+      throw new Error("score ha de ser un nombre entre 0 i 10");
+   }this._score=value;
+}
+set type(value){
+   const validTypes=["TV", "Movie", "OVA", "Special", "ONA", "Music"];
+   if(typeof value!=="string"||!validTypes.includes(value)){
+      throw new Error("type no és vàlid");
+   }this._type=value;
+}
+set genres(value){
+   const validGenres=Array.isArray(value)&&value.every((genre)=>genre&&typeof genre==="object"&&typeof genre.mal_id==="number"&&typeof genre.type==="string"&&typeof genre.name==="string"&&typeof genre.url==="string);
+   if (!validGenres){
+      throw new Error("genres ha de ser un array vàlid de genere");
+   }this._genres=value;
+}
+set studios(value){
+   const validStudios=Array.isArray(value)&&value.every((studio)=>studio&&typeof studio==="object"&&typeof studio.mal_id==="number"&&typeof studio.type==="string"&&typeof studio.name==="string"&&typeof studio.url==="string);
+   if(!validStudios){
+      throw new Error("studios ha de ser un array valid d'estudis");
+   }this._studios=value;
+}
+set image_url(value){
+   if(typeof value!=="string"||value.trim()===""){
+      throw new Error("image_url ha de ser un text ple");
+   }this._image_url=value.trim();
+}
+set popularity(value){
+   if (!Number.isInteger(value)||value<=0){
+      throw new Error("popularity ha de ser un nombre enter positiu");
+   }this._popularity=value;
+}
 
 /* =============================================================================
    ETAPA 2 — Clase AnimeList (5 puntos)
    Gestiona una colección de objetos Anime.
    ============================================================================= */
-
 class AnimeList {
 
   constructor() {
-    //...
+   this._animes=[]; 
+     //...
   }
+   get animes(){
+      return this._animes;
+   }
 
   /**
    * Añade un anime a la lista.
    */
   addAnime(anime) {
-    // ...
+    if(!anime instanceof Anime)){
+       throw new Error("Només es pot afegir instancies d'Anime");
+    }
+     const alreadyExists=this._animes.some((currentAnime)=>currentAnime.mal_id===anime.mal_id);
+     if(alreadyExists){
+        throw new Error(`Ja exiteix un anime amb mal_id ${anime.mal_id}.`);
+     }this._animes.push(anime);
   }
+ // ...
+  
 
   /**
    * Elimina un anime de la lista por su mal_id.
    */
   removeAnime(animeId) {
-    //...
+   const initialLenght=this._animes-lenght;
+     this._animes=this._animes.filter((anime)=>anime.mal_id!==animeId);
+     return this._animes.length<initialLenght;
   }
+     //...
 
   /**
    * Muestra por consola la información básica de cada anime de la lista.
    */
-  showList() {
-    //...
+ showList() {
+    this._animes.forEach((anime) => {
+      console.log(
+        `Título: ${anime.title} | Tipo: ${anime.type} | Puntuación: ${anime.score} | Imagen: ${anime.image_url}`
+      );
+    });
   }
+  showList() {
+     this._animes.forEach((anime)=>{
+        console.log(`Título: ${anime.title} | Tipo: ${anime.type} | Puntuación: ${anime.score} | Imagen: ${anime.image_url}`);
+     });
+  }
+    //...
+  
 
   /* ===========================================================================
      ETAPA 3 — Funciones flecha dentro de AnimeList (5 puntos)
@@ -88,22 +212,28 @@ class AnimeList {
    * Agrega múltiples anime a la vez usando el operador rest (...animes).
    */
   addMultipleAnimes = (...animes) => {
-    //... 
+    animes.forEach((anime)=>this.addAnime(anime));
+//... 
   };
 
   /**
    * Filtra los anime según un rango de puntuación [minScore, maxScore].
    */
+   
   getAnimesByScoreRange = (minScore, maxScore) => {
-    //...
+    if(typeof minScore!=="number"||typeof maxScore!=="number"||minScore>maxScore){
+       throw new Error("El rang de puntuació no es vàlid");
+    }return this._animes.filter((anime)=>anime.score>=minScore&&anim.score<=maxScore(;
+     //...
   };
-
+   
   /**
    * Ordena los anime de la lista por popularidad, del más popular (rank 1)
    * al menos popular (rank más alto).
    */
   sortAnimesByPopularity = () => {
-    //...
+    return[...this._animes]-sort((a,b)=>a.popularity-b.popularity);
+     //...
   };
 }
 
@@ -117,6 +247,13 @@ class AnimeList {
  * Busca recursivamente un anime en una AnimeList por su mal_id.
  */
 const findAnimeById = (animeList, mal_id, index = 0) => {
+   if(!(animeList instanceof AnimeList)){
+      throw new Error("animeList ha de ser una instància de AnimeList");
+   }if(index>=animeList.animes.length){
+      return null;
+   }if(animeList.animes[index].mal_id===mal_id){
+      return animeList.animes[index];
+   }return findAnimeById(animeList, mal_id, index+1);
   //...
 };
 
@@ -131,7 +268,22 @@ const findAnimeById = (animeList, mal_id, index = 0) => {
  * el nombre del género más frecuente.
  */
 const getMostCommonGenre = (animeList) => {
-  //...
+  if(!animeList instanceof AnimeList)){
+     throw new Error("animeList ha de ser una instància de AnimeList");
+  }
+   cost genreCount=animeList.animes.reduce((acc,anime)=>{
+      anime.genres.forEach((genre)=>{
+         acc[genre.name]=(acc[genre.name]||0)+1;
+      });
+      return acc;
+   },{});
+   const genreEntries=Object.entries(genreCount);
+   if(genreEntries.lenght===0){
+      return null;
+   }
+   const mostCommon=genreEntries.reduce(maxGenre, currentGenre)=>currentGenre[1]>maxGenre[1]?currentGenre:maxGenre);
+   return mostCommon[0];                                    
+      //...
 };
 
 
@@ -145,7 +297,13 @@ const getMostCommonGenre = (animeList) => {
  * únicamente sus títulos.
  */
 const getHighRatedAnimes = (animesArray, minScore) => {
-  //...
+  if(!Array.isArray(animesArray)){
+     throw new Error("animesArray ha de ser un array");
+  }
+   if(typeof minScore!=="number"){
+      throw new Error("minScore ha de ser un nombre");
+   }return animesArray.filter((anime)=>anime.score>=minScore).map((anime)=>anime.title);
+   //...
 };
 
 
@@ -160,14 +318,26 @@ const getHighRatedAnimes = (animesArray, minScore) => {
  * 'fullInfo: true' usando el operador spread.
  */
 const getAnimeInfo = (anime) => {
-  // Destructuring: extraemos las propiedades que nos interesan del objeto anime
-  //...
-
+  if(!(anime instanceof Anime)){
+     throw new Error("anime ha de ser una instància de Anime");
+  }
+   // Destructuring: extraemos las propiedades que nos interesan del objeto anime
+  const{title, type, score, genres, studios}=anime;
+   const[firstGenre]=genres;
+   const[firstStudio]=studios;
+   //...
   // Mostramos la información de forma organizada en la consola
-  //...
-
+  console.log("Informació anime:");
+   console.log(`Titol:${title}`);
+   console.log(`Tipus: ${type}`);
+   console.log(`Puntuació: ${score}`);
+   console.log(`Primer gènere: ${firstGenre ? firstGenre.name : "No disponible"}`);
+   console.log(`Primer estudi: ${firstStudio ? firstStudio.name : "No disponible"}`);
+   //...
   // Creamos un nuevo objeto con spread: copiamos todo el anime y añadimos fullInfo
-  //...
+  const animeConFullInfo={
+     ...anime,fullInfo:true,};
+   //...
 
   return animeConFullInfo;
 };
@@ -182,10 +352,27 @@ const getAnimeInfo = (anime) => {
  * Filtra los anime producidos por un estudio concreto y devuelve un resumen
  * con el nombre del estudio, cantidad de anime, sus títulos y la puntuación media.
  */
-const getAnimesByStudio = (animesArray, nombreEstudio) => {
-  //...
-  };
 
+
+const getAnimesByStudio = (animesArray, nombreEstudio) => {
+  if(!Array.isArray(animesArray)){
+     throw new Error("animesArray ha de ser un array")/;
+  }
+   if(typeof nombreEstudio!=="string"||nombreEstudio.trim()===""){
+      throw new Error("nombreEstudio ha de ser un text buit");
+   }
+   const filteredAnimes=animesArray.filter((anime)=>
+      anime.studios.some((studio)=>studio.name===nombreEstudio));
+   const animeTitles=filteredAnimes.map((anime)=>anime.title);
+   const avarageScore=filteredAnimes.length===0?0:filteredAnimes.reduce((sum,anime)=>sum+anime.score,0)/filteredAnimes.length;
+   return{
+      studio:nombreEstudio,
+      count:filteredAnimes.length,
+      animes:animeTitles,
+      averageScore,
+   }:
+      /...
+  };
 
 /* =============================================================================
    DATOS DE PRUEBA
